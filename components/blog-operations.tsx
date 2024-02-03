@@ -23,14 +23,34 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "@/components/ui/use-toast";
 import { Icons } from "@/components/icons";
+import { PROD_URL } from "@/lib/api";
 
-async function deletePost(postId: string) {}
+async function deletePost(token: string, postId: string) {
+  const response = await fetch(`${PROD_URL}blog/${postId}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response?.ok) {
+    toast({
+      title: "Something went wrong.",
+      description: "Your post was not deleted. Please try again.",
+      variant: "destructive",
+    });
+  }
+
+  return true;
+}
 
 interface BlogOperationsProps {
   blog: any;
+  token: string;
 }
 
-export function BlogOperations({ blog }: BlogOperationsProps) {
+export function BlogOperations({ token, blog }: BlogOperationsProps) {
   const router = useRouter();
   const [showDeleteAlert, setShowDeleteAlert] = React.useState<boolean>(false);
   const [isDeleteLoading, setIsDeleteLoading] = React.useState<boolean>(false);
@@ -44,9 +64,15 @@ export function BlogOperations({ blog }: BlogOperationsProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem>
-            <Link href={`/editor/${blog.id}`} className="flex w-full">
+            <Link href={`dashboard/editor/${blog.id}`} className="flex w-full">
               Edit
             </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem>
+            <a href={`blog/${blog.id}`} target="_blank" className="flex w-full">
+              Preview
+            </a>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -70,7 +96,18 @@ export function BlogOperations({ blog }: BlogOperationsProps) {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={async (event) => {}}
+              onClick={async (event) => {
+                event.preventDefault();
+                setIsDeleteLoading(true);
+
+                const deleted = await deletePost(token, blog.id);
+
+                if (deleted) {
+                  setIsDeleteLoading(false);
+                  setShowDeleteAlert(false);
+                  router.refresh();
+                }
+              }}
               className="bg-red-600 focus:ring-red-600"
             >
               {isDeleteLoading ? (

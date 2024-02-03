@@ -15,19 +15,22 @@ import { postPatchSchema } from "@/lib/validations/post";
 import { buttonVariants } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { Icons } from "@/components/icons";
+import { PROD_URL } from "@/lib/api";
 
 interface EditorProps {
-  post: any;
+  token: string;
+  blogId: any;
 }
 
 type FormData = z.infer<typeof postPatchSchema>;
 
-export function Editor({ post }: EditorProps) {
+export function Editor({ token, blogId }: EditorProps) {
   const { register, handleSubmit } = useForm<FormData>({
     resolver: zodResolver(postPatchSchema),
   });
   const ref = React.useRef<EditorJS>();
   const router = useRouter();
+  const [post, setPost] = React.useState<any>({});
   const [isSaving, setIsSaving] = React.useState<boolean>(false);
   const [isMounted, setIsMounted] = React.useState<boolean>(false);
 
@@ -47,52 +50,12 @@ export function Editor({ post }: EditorProps) {
     if (!ref.current) {
       const editor = new EditorJS({
         holder: "editor",
-        // readOnly: true,
         onReady() {
           ref.current = editor;
         },
         placeholder: "Type here to write your post...",
         inlineToolbar: true,
-        data: {
-          time: 1706809985961,
-          blocks: [
-            {
-              id: "uvv14Hw47S",
-              type: "image",
-              data: {
-                url: "https://www.tesla.com/tesla_theme/assets/img/_vehicle_redesign/roadster_and_semi/roadster/hero.jpg",
-                caption: "asdsad",
-                withBorder: false,
-                withBackground: false,
-                stretched: false,
-              },
-            },
-            {
-              id: "5nIGQFfPoq",
-              type: "list",
-              data: {
-                style: "unordered",
-                items: ["asd", "Asd", "asd"],
-              },
-            },
-            {
-              id: "RhMqRTNOZg",
-              type: "paragraph",
-              data: {
-                text: "<i><b>sad</b></i>",
-              },
-            },
-            {
-              id: "tkecoCxSfx",
-              type: "table",
-              data: {
-                withHeadings: false,
-                content: [["asd", "asd", "asd", "asd"]],
-              },
-            },
-          ],
-          version: "2.29.0",
-        },
+        data: body.content,
         tools: {
           header: Header,
           linkTool: LinkTool,
@@ -106,6 +69,24 @@ export function Editor({ post }: EditorProps) {
       });
     }
   }, [post]);
+
+  const getPostForUser = React.useCallback(async (postId: string) => {
+    fetch(`${PROD_URL}blog/${postId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        setPost(res);
+      })
+      .catch(() => {});
+  }, []);
+
+  React.useEffect(() => {
+    getPostForUser(blogId);
+  }, []);
 
   React.useEffect(() => {
     if (typeof window !== "undefined") {
@@ -129,34 +110,34 @@ export function Editor({ post }: EditorProps) {
 
     const blocks = await ref.current?.save();
 
-    console.log("blocks: ", blocks);
-
-    const response = await fetch(`/api/posts/${post.id}`, {
+    fetch(`${PROD_URL}blog`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
+        id: post.id,
         title: data.title,
         content: blocks,
       }),
-    });
-
-    setIsSaving(false);
-
-    if (!response?.ok) {
-      return toast({
-        title: "Something went wrong.",
-        description: "Your post was not saved. Please try again.",
-        variant: "destructive",
+    })
+      .then((response) => response.json())
+      .then((updatedPost) => {
+        setPost(updatedPost);
+        setIsSaving(false);
+        router.refresh();
+        return toast({
+          description: "Your post has been saved.",
+        });
+      })
+      .catch(() => {
+        return toast({
+          title: "Something went wrong.",
+          description: "Your post was not saved. Please try again.",
+          variant: "destructive",
+        });
       });
-    }
-
-    router.refresh();
-
-    return toast({
-      description: "Your post has been saved.",
-    });
   }
 
   if (!isMounted) {
@@ -177,9 +158,9 @@ export function Editor({ post }: EditorProps) {
                 Back
               </>
             </Link>
-            <p className="text-sm text-muted-foreground">
+            {/* <p className="text-sm text-muted-foreground">
               {post.published ? "Published" : "Draft"}
-            </p>
+            </p> */}
           </div>
           <button type="submit" className={cn(buttonVariants())}>
             {isSaving && (
@@ -192,7 +173,7 @@ export function Editor({ post }: EditorProps) {
           <TextareaAutosize
             autoFocus
             id="title"
-            defaultValue={post.title}
+            defaultValue={post?.title}
             placeholder="Post title"
             className="w-full resize-none appearance-none overflow-hidden bg-transparent text-5xl font-bold focus:outline-none"
             {...register("title")}

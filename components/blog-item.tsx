@@ -2,9 +2,15 @@ import Image from "next/image";
 import { formatDate } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BlogOperations } from "@/components/blog-operations";
+import { cookies } from "next/headers";
 
 interface BlogItemProps {
   blog: any;
+}
+
+function getToken() {
+  const cookieStore = cookies();
+  return cookieStore?.get("next-auth.session-token")?.value || "";
 }
 
 export function BlogItem({ blog }: BlogItemProps) {
@@ -12,24 +18,23 @@ export function BlogItem({ blog }: BlogItemProps) {
     <article className="group relative flex flex-col space-y-2">
       <div>
         <div className="absolute top-2 right-2">
-          <BlogOperations blog={blog} />
+          <BlogOperations token={getToken()} blog={blog} />
         </div>
-        {blog.image && (
+        {blog?.background && (
           <Image
-            src={blog.image}
+            src={blog?.background}
             alt={blog.title}
             width={804}
             height={452}
-            className="rounded-md border bg-muted transition-colors"
+            className="min-h-[452px] max-h-[452px] rounded-md border bg-muted transition-colors"
           />
         )}
       </div>
       <h2 className="text-2xl font-extrabold">{blog.title}</h2>
-      {blog.description && (
-        <p className="text-muted-foreground">{blog.description}</p>
-      )}
-      {blog.date && (
-        <p className="text-sm text-muted-foreground">{formatDate(blog.date)}</p>
+      {blog.updatedAt && (
+        <p className="text-sm text-muted-foreground">
+          {formatDate(blog.updatedAt)}
+        </p>
       )}
     </article>
   );

@@ -7,12 +7,16 @@ import { cn } from "@/lib/utils";
 import { ButtonProps, buttonVariants } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { Icons } from "@/components/icons";
+import { PROD_URL } from "@/lib/api";
 
-interface BlogCreateButtonProps extends ButtonProps {}
+interface BlogCreateButtonProps extends ButtonProps {
+  token: string;
+}
 
 export function BlogCreateButton({
   className,
   variant,
+  token,
   ...props
 }: BlogCreateButtonProps) {
   const router = useRouter();
@@ -21,14 +25,13 @@ export function BlogCreateButton({
   async function onClick() {
     setIsLoading(true);
 
-    const response = await fetch("/api/posts", {
+    const response: any = await fetch(`${PROD_URL}blog`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({
-        title: "Untitled Post",
-      }),
+      body: JSON.stringify({}),
     });
 
     setIsLoading(false);
@@ -46,7 +49,7 @@ export function BlogCreateButton({
     // This forces a cache invalidation.
     router.refresh();
 
-    router.push(`/editor/${blog.id}`);
+    router.push(`/dashboard/editor/${blog.id}`);
   }
 
   return (

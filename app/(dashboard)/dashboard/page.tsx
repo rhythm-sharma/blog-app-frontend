@@ -3,45 +3,51 @@ import { DashboardHeader } from "@/components/header";
 import { BlogCreateButton } from "@/components/blog-create-button";
 import { BlogItem } from "@/components/blog-item";
 import { DashboardShell } from "@/components/shell";
+import { PROD_URL } from "@/lib/api";
+import { cookies } from "next/headers";
 
-const blogs = [
-  {
-    _id: "1",
-    image:
-      "https://images.unsplash.com/photo-1682685797366-715d29e33f9d?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    title: "1",
-    description: "1",
-    date: "April 9, 2023",
-    slug: "",
-    published: "1",
-  },
-  {
-    _id: "2",
-    image:
-      "https://images.unsplash.com/photo-1682685797366-715d29e33f9d?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    title: "2",
-    description: "2",
-    date: "April 9, 2023",
-    slug: "",
-    published: "1",
-  },
-];
+function getToken() {
+  const cookieStore = cookies();
+  return cookieStore?.get("next-auth.session-token")?.value || "";
+}
+
+async function getBlogs() {
+  const token = getToken();
+
+  const res: any = await fetch(`${PROD_URL}blog`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    // Error Boundary
+    throw new Error("Failed to fetch data");
+  }
+
+  return res.json();
+}
 
 export const metadata = {
   title: "Dashboard",
 };
 
 export default async function DashboardPage() {
+  const blogs = await getBlogs();
+  const token: string = getToken();
+
   return (
     <DashboardShell>
       <DashboardHeader heading="Blogs" text="Create and manage blogs.">
-        <BlogCreateButton />
+        <BlogCreateButton token={token} />
       </DashboardHeader>
       <div>
         {blogs?.length ? (
           <div className="grid gap-10 sm:grid-cols-3">
-            {blogs.map((blog) => (
-              <BlogItem key={blog._id} blog={blog} />
+            {blogs.map((blog: any) => (
+              <BlogItem key={blog.id} blog={blog} />
             ))}
           </div>
         ) : (
@@ -51,7 +57,7 @@ export default async function DashboardPage() {
             <EmptyPlaceholder.Description>
               You don&apos;t have any blogs yet. Start creating content.
             </EmptyPlaceholder.Description>
-            <BlogCreateButton variant="outline" />
+            <BlogCreateButton token={token} variant="outline" />
           </EmptyPlaceholder>
         )}
       </div>

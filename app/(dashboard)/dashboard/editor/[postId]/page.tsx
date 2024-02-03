@@ -1,26 +1,21 @@
-import { notFound } from "next/navigation";
-
 import { Editor } from "@/components/editor";
+import { cookies } from "next/headers";
 
 interface EditorPageProps {
   params: { postId: string };
 }
 
-export default async function EditorPage({ params }: EditorPageProps) {
-  // const post = await getPostForUser(params.postId, user.id)
-  const post: any = {};
-  if (!post) {
-    notFound();
-  }
+function getToken() {
+  const cookieStore = cookies();
+  return cookieStore?.get("next-auth.session-token")?.value || "";
+}
 
-  return (
-    <Editor
-      post={{
-        id: post.id,
-        title: post.title,
-        content: post.content,
-        published: post.published,
-      }}
-    />
-  );
+export const metadata = {
+  title: "Edit",
+};
+
+export default async function EditorPage({ params }: EditorPageProps) {
+  const token = getToken();
+
+  return <Editor token={token} blogId={params.postId} />;
 }
