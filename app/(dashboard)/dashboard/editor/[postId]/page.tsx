@@ -7,7 +7,7 @@ interface EditorPageProps {
 
 function getToken() {
   const cookieStore = cookies();
-  return cookieStore?.get("next-auth.session-token")?.value || "";
+  return cookieStore?.get("__Secure-next-auth.session-token")?.value || "";
 }
 
 export const metadata = {
