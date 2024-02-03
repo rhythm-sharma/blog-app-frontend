@@ -169,7 +169,7 @@ export function Editor({ token, blogId }: EditorProps) {
             <span>Save</span>
           </button>
         </div>
-        <div className="prose prose-stone mx-auto w-[800px] dark:prose-invert">
+        <div className="prose prose-stone mx-auto w-[80%] dark:prose-invert">
           <TextareaAutosize
             autoFocus
             id="title"

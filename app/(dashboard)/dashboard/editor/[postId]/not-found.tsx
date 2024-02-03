@@ -1,11 +1,11 @@
-import Link from "next/link"
+import Link from "next/link";
 
-import { buttonVariants } from "@/components/ui/button"
-import { EmptyPlaceholder } from "@/components/empty-placeholder"
+import { buttonVariants } from "@/components/ui/button";
+import { EmptyPlaceholder } from "@/components/empty-placeholder";
 
 export default function NotFound() {
   return (
-    <EmptyPlaceholder className="mx-auto max-w-[800px]">
+    <EmptyPlaceholder className="mx-auto max-w-[80%]">
       <EmptyPlaceholder.Icon name="warning" />
       <EmptyPlaceholder.Title>Uh oh! Not Found</EmptyPlaceholder.Title>
       <EmptyPlaceholder.Description>
@@ -15,5 +15,5 @@ export default function NotFound() {
         Go to Dashboard
       </Link>
     </EmptyPlaceholder>
-  )
+  );
 }
