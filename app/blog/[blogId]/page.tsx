@@ -21,6 +21,10 @@ async function getPostForUser(blogId: string) {
   return res.json();
 }
 
+export const metadata = {
+  title: "Preview",
+};
+
 export default async function EditorPage({ params }: EditorPageProps) {
   const blog = await getPostForUser(params.blogId);
 
